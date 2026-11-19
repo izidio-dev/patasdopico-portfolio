@@ -25,7 +25,7 @@ export async function apiFalsa(page: Page, opcoes: { saudeFalhaVezes?: number; t
       if (falhas > 0) { falhas--; return route.abort(); }
       return json(route, 200, { status: "ok", banco: "ok" });
     }
-    if (caminho === "/api/auth/demo") return json(route, 200, { token: "tok-demo", nome: "Equipe (demonstração)" });
+    if (caminho === "/api/auth/demo") return json(route, 200, { token: "tok-demo", nome: "Funcionário (demonstração)", papel: url.searchParams.get("papel") ?? "FUNCIONARIO" });
     if (caminho === "/api/auth/login") return json(route, 401, { title: "Não autorizado", detail: "Usuário ou senha incorretos." });
     if (opcoes.tokenExpirado) return json(route, 401, { detail: "Faça login para continuar." });
     if (caminho === "/api/eu") return json(route, 200, { login: "demo", nome: "Equipe (demonstração)", demo: true });

@@ -1,7 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { viteSingleFile } from "vite-plugin-singlefile";
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-});
+// Modo "previa": gera um único arquivo HTML com a API simulada embutida (para visualização).
+export default defineConfig(({ mode }) => ({
+  plugins: [react(), tailwindcss(), ...(mode === "previa" ? [viteSingleFile()] : [])],
+  build: mode === "previa" ? { outDir: "dist-previa" } : {},
+}));

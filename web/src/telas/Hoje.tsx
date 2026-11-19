@@ -21,10 +21,11 @@ export function Hoje() {
   useEffect(carregar, [carregar]);
 
   const data = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", timeZone: "America/Sao_Paulo" });
+  // Faturamento só aparece para o dono (para o funcionário a API manda null).
   const cartoes = resumo && [
     { rotulo: "Agendados hoje", valor: String(resumo.hoje.agendados), icone: Clock, id: "agendados" },
     { rotulo: "Concluídos hoje", valor: String(resumo.hoje.concluidos), icone: CalendarCheck, id: "concluidos" },
-    { rotulo: "Faturamento do mês", valor: reais(resumo.faturamentoMesCentavos), icone: CircleDollarSign, id: "faturamento" },
+    ...(resumo.faturamentoMesCentavos !== null ? [{ rotulo: "Faturamento do mês (serviços)", valor: reais(resumo.faturamentoMesCentavos), icone: CircleDollarSign, id: "faturamento" }] : []),
   ];
 
   return (
@@ -33,7 +34,7 @@ export function Hoje() {
       <p className="mt-1 text-suave">{maiusculaInicial(data)}</p>
       {erro && <p role="alert" className="mt-4 text-coral">{erro}</p>}
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-3">
+      <div className={`mt-6 grid gap-3 ${cartoes && cartoes.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
         {cartoes?.map((c) => (
           <div key={c.id} className="rounded-xl border border-linha bg-cartao p-4">
             <p className="flex items-center gap-2 text-sm text-suave">

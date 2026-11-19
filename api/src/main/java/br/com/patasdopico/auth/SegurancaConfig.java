@@ -22,6 +22,8 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -47,18 +49,42 @@ public class SegurancaConfig {
                 .authorizeHttpRequests(a -> a
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**", "/api/saude", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .anyRequest().authenticated())
+                        // Só o dono: dinheiro e equipe.
+                        .requestMatchers("/api/financeiro/**", "/api/equipe/**").hasRole("DONO")
+                        .requestMatchers(HttpMethod.PUT, "/api/servicos/**").hasRole("DONO")
+                        // Área do cliente.
+                        .requestMatchers("/api/cliente/**").hasRole("CLIENTE")
+                        // Todos os logados: quem sou eu e tabela de serviços.
+                        .requestMatchers("/api/eu", "/api/servicos").authenticated()
+                        // O resto é do balcão (dono e funcionário).
+                        .anyRequest().hasAnyRole("DONO", "FUNCIONARIO"))
+                .exceptionHandling(e -> e.accessDeniedHandler((req, res, ex) ->
+                        escreverProblema(res, json, HttpStatus.FORBIDDEN, "Sem permissão", "Você não tem permissão para acessar esta área.")))
                 .oauth2ResourceServer(o -> o
-                        .jwt(Customizer.withDefaults())
-                        .authenticationEntryPoint((req, res, ex) -> {
-                            ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Faça login para continuar.");
-                            p.setTitle("Não autenticado");
-                            res.setStatus(401);
-                            res.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
-                            res.setCharacterEncoding("UTF-8");
-                            res.getWriter().write(json.writeValueAsString(p));
-                        }))
+                        .jwt(j -> j.jwtAuthenticationConverter(papeis()))
+                        .authenticationEntryPoint((req, res, ex) ->
+                                escreverProblema(res, json, HttpStatus.UNAUTHORIZED, "Não autenticado", "Faça login para continuar.")))
                 .build();
+    }
+
+    /** O papel vem do token (claim "papel") e vira ROLE_DONO, ROLE_FUNCIONARIO ou ROLE_CLIENTE. */
+    private static JwtAuthenticationConverter papeis() {
+        JwtGrantedAuthoritiesConverter autoridades = new JwtGrantedAuthoritiesConverter();
+        autoridades.setAuthoritiesClaimName("papel");
+        autoridades.setAuthorityPrefix("ROLE_");
+        JwtAuthenticationConverter conversor = new JwtAuthenticationConverter();
+        conversor.setJwtGrantedAuthoritiesConverter(autoridades);
+        return conversor;
+    }
+
+    private static void escreverProblema(jakarta.servlet.http.HttpServletResponse res, JsonMapper json, HttpStatus status, String titulo, String detalhe)
+            throws java.io.IOException {
+        ProblemDetail p = ProblemDetail.forStatusAndDetail(status, detalhe);
+        p.setTitle(titulo);
+        res.setStatus(status.value());
+        res.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+        res.setCharacterEncoding("UTF-8");
+        res.getWriter().write(json.writeValueAsString(p));
     }
 
     @Bean

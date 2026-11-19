@@ -22,7 +22,8 @@ public class ResumoController {
 
     public record Hoje(long agendados, long concluidos, long cancelados) {}
 
-    public record Resumo(Hoje hoje, long faturamentoMesCentavos, List<AtendimentoResposta> proximos) {}
+    /** faturamentoMesCentavos vem null para quem não é dono. */
+    public record Resumo(Hoje hoje, Long faturamentoMesCentavos, List<AtendimentoResposta> proximos) {}
 
     private final AtendimentoRepository atendimentos;
     private final Clock relogio;
@@ -35,7 +36,8 @@ public class ResumoController {
     @Operation(summary = "Números do dia, faturamento do mês e próximos atendimentos")
     @GetMapping("/api/resumo")
     @Transactional(readOnly = true)
-    public Resumo resumo() {
+    public Resumo resumo(org.springframework.security.core.Authentication quem) {
+        boolean dono = quem.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_DONO"));
         LocalDate hoje = LocalDate.now(relogio);
         LocalDateTime inicio = hoje.atStartOfDay();
         LocalDateTime fim = hoje.plusDays(1).atStartOfDay().minusNanos(1);
@@ -44,7 +46,7 @@ public class ResumoController {
                 new Hoje(atendimentos.countByStatusAndDataHoraBetween(Status.AGENDADO, inicio, fim),
                         atendimentos.countByStatusAndDataHoraBetween(Status.CONCLUIDO, inicio, fim),
                         atendimentos.countByStatusAndDataHoraBetween(Status.CANCELADO, inicio, fim)),
-                atendimentos.somarConcluidos(primeiroDia.atStartOfDay(), primeiroDia.plusMonths(1).atStartOfDay()),
+                dono ? atendimentos.somarConcluidos(primeiroDia.atStartOfDay(), primeiroDia.plusMonths(1).atStartOfDay()) : null,
                 atendimentos.findByStatusAndDataHoraAfterOrderByDataHora(Status.AGENDADO, LocalDateTime.now(relogio), Limit.of(5))
                         .stream().map(AtendimentoResposta::de).toList());
     }

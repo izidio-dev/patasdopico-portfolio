@@ -5,6 +5,7 @@ import { hora, nomeServico, nomeStatus, reais, telefone } from "../lib/formato";
 import type { Atendimento, StatusAtendimento } from "../lib/tipos";
 
 const corStatus: Record<StatusAtendimento, string> = {
+  SOLICITADO: "bg-coral/15 text-coral",
   AGENDADO: "bg-sol/30 text-tinta",
   CONCLUIDO: "bg-folha-clara text-folha-escura",
   CANCELADO: "bg-linha text-suave line-through",
@@ -47,6 +48,16 @@ export function ListaAtendimentos({ itens, aoMudar }: { itens: Atendimento[]; ao
             </div>
             <p className="font-semibold tabular-nums">{reais(a.valorCentavos)}</p>
             <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${corStatus[a.status]}`}>{nomeStatus[a.status]}</span>
+            {a.status === "SOLICITADO" && (
+              <div className="flex gap-2">
+                <button type="button" onClick={() => mudar(a, "AGENDADO")} className="rounded-lg bg-folha px-3 py-1.5 text-xs font-bold text-white hover:bg-folha-escura">
+                  Confirmar
+                </button>
+                <button type="button" onClick={() => mudar(a, "CANCELADO")} className="rounded-lg border border-linha px-3 py-1.5 text-xs font-semibold hover:border-coral">
+                  Recusar
+                </button>
+              </div>
+            )}
             {a.status === "AGENDADO" && (
               <div className="flex gap-2">
                 <button type="button" onClick={() => mudar(a, "CONCLUIDO")} className="rounded-lg bg-folha px-3 py-1.5 text-xs font-bold text-white hover:bg-folha-escura">

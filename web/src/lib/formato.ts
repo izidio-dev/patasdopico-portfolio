@@ -15,7 +15,7 @@ export const dataCurta = (iso: string) => new Date(iso.slice(0, 10) + "T12:00:00
 export const hojeISO = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 
 export const nomeServico: Record<Servico, string> = { BANHO: "Banho", TOSA: "Tosa", BANHO_E_TOSA: "Banho e tosa", VACINA: "Vacina", CONSULTA: "Consulta" };
-export const nomeStatus: Record<StatusAtendimento, string> = { AGENDADO: "Agendado", CONCLUIDO: "Concluído", CANCELADO: "Cancelado" };
+export const nomeStatus: Record<StatusAtendimento, string> = { SOLICITADO: "Solicitado", AGENDADO: "Agendado", CONCLUIDO: "Concluído", CANCELADO: "Cancelado" };
 export const nomeEspecie: Record<Especie, string> = { CAO: "Cão", GATO: "Gato", OUTRO: "Outro" };
 export const nomePorte: Record<Porte, string> = { PEQUENO: "Pequeno", MEDIO: "Médio", GRANDE: "Grande" };
 export const precoSugerido: Record<Servico, number> = { BANHO: 6000, TOSA: 7000, BANHO_E_TOSA: 11000, VACINA: 9000, CONSULTA: 15000 };
@@ -37,3 +37,13 @@ export function idade(nascimento: string | null) {
 
 /** "quinta-feira, 19 de novembro" → "Quinta-feira, 19 de novembro". */
 export const maiusculaInicial = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+
+/** "2026-11" → "novembro de 2026". */
+export const nomeMes = (mes: string) => new Date(mes + "-15T12:00:00").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+export const mesAbreviado = (mes: string) => new Date(mes + "-15T12:00:00").toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+export const mesAtual = () => hojeISO().slice(0, 7);
+export function somarMeses(mes: string, n: number) {
+  const [a, m] = mes.split("-").map(Number);
+  const d = new Date(a, m - 1 + n, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}

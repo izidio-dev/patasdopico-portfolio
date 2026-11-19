@@ -5,19 +5,29 @@ pet shop fictício organizar tutores, pets e a agenda de banho, tosa, vacina e c
 Projeto de portfólio com dados fictícios.
 
 **Ver ao vivo:** https://patasdopico-portfolio.brmizidio.workers.dev
-(use "Entrar como demonstração" — o servidor gratuito pode levar até 1 minuto para acordar)
+(use "Entrar como dono", "como funcionário" ou "como cliente" — o servidor gratuito pode levar até 1 minuto para acordar)
 
-**Documentação da API (Swagger):** https://ENDERECO-DA-API/swagger-ui.html
+**Documentação da API (Swagger):** https://patasdopico-portfolio.onrender.com/swagger-ui.html
 
 ## Funcionalidades
 
-- Login da equipe com token JWT e modo demonstração.
-- **Hoje:** atendimentos do dia, concluídos e faturamento do mês; concluir ou cancelar com um clique.
-- **Agenda:** navegação por dia e novo atendimento (busca do tutor e escolha do pet).
-- **Tutores:** busca por nome sem diferenciar acento ou por telefone, cadastro e edição.
-- **Pets:** espécie, porte, raça, idade e observações (alergias, cuidados), com histórico de atendimentos.
-- **LGPD:** exportar os dados do tutor (JSON) e excluir o tutor — os atendimentos ficam como
-  registro financeiro anônimo.
+Três painéis, cada um vendo só o que pode — o bloqueio é feito na **API** (403), não só escondido na tela.
+
+**Cliente**
+- Cria a própria conta (com aceite da Política de Privacidade) e cadastra os pets.
+- Agenda online em horário livre, com o preço da tabela; acompanha e cancela os pedidos.
+- LGPD: baixa os próprios dados e exclui a conta.
+
+**Funcionário**
+- **Hoje** e **Agenda**: confirma pedidos dos clientes, agenda, conclui e cancela atendimentos.
+- **Tutores e pets** com busca sem diferenciar acento, histórico e exclusão LGPD do tutor.
+- **Serviços**: consulta preços e duração (não altera).
+
+**Dono** (tudo do funcionário, mais)
+- **Financeiro**: entradas e saídas, saldo do mês, gastos por categoria e gráfico dos últimos 6 meses.
+  Atendimento concluído vira entrada automaticamente.
+- **Equipe**: cria funcionários, desativa/reativa acesso e redefine senhas.
+- **Serviços**: altera preço e duração.
 
 ## Tecnologias
 
@@ -30,8 +40,8 @@ Projeto de portfólio com dados fictícios.
 ## Testes
 
 ```bash
-cd api && mvn test                # 25 testes de integração em PostgreSQL embutido
-cd web && npm run test:tela       # 11 testes de tela com a API simulada
+cd api && mvn test                # 44 testes de integração em PostgreSQL embutido
+cd web && npm run test:tela       # 14 testes de tela (três painéis) com a API simulada
 ```
 
 ## Rodar no computador

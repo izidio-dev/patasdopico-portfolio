@@ -62,7 +62,7 @@ export function Agenda() {
           aoFechar={() => setNovo(false)}
           aoCriar={(a) => {
             setNovo(false);
-            if (a.dataHora.startsWith(dia)) setItens((l) => [...(l ?? []), a].sort((x, y) => x.dataHora.localeCompare(y.dataHora)));
+            if (a.dataHora.startsWith(dia)) setItens((l) => [...(l ?? []).filter((x) => x.id !== a.id), a].sort((x, y) => x.dataHora.localeCompare(y.dataHora)));
           }}
         />
       )}

@@ -20,6 +20,14 @@ public interface AtendimentoRepository extends JpaRepository<Atendimento, Long> 
 
     List<Atendimento> findByPetTutorId(Long tutorId);
 
+    @EntityGraph(attributePaths = {"pet", "pet.tutor"})
+    List<Atendimento> findByPetTutorIdOrderByDataHoraDesc(Long tutorId);
+
+    /** Horário ocupado = já existe atendimento não cancelado começando nele. */
+    boolean existsByDataHoraAndStatusNot(LocalDateTime dataHora, Atendimento.Status status);
+
+    List<Atendimento> findByDataHoraBetweenAndStatusNot(LocalDateTime inicio, LocalDateTime fim, Atendimento.Status status);
+
     long countByStatusAndDataHoraBetween(Atendimento.Status status, LocalDateTime inicio, LocalDateTime fim);
 
     @Query("select coalesce(sum(a.valorCentavos), 0) from Atendimento a where a.status = 'CONCLUIDO' and a.dataHora >= ?1 and a.dataHora < ?2")

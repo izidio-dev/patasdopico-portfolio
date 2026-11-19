@@ -51,7 +51,7 @@ public class TutorService {
     }
 
     /** "(11) 98765-4321" → "11987654321"; recusa o que não tiver 10 ou 11 dígitos. */
-    static String normalizarTelefone(String telefone) {
+    public static String normalizarTelefone(String telefone) {
         String digitos = telefone == null ? "" : telefone.replaceAll("\\D", "");
         if (digitos.length() != 10 && digitos.length() != 11)
             throw new CampoInvalidoException("telefone", "Telefone precisa ter DDD + número (10 ou 11 dígitos).");
@@ -88,7 +88,7 @@ public class TutorService {
         return TutorDetalhe.de(t);
     }
 
-    Tutor buscar(Long id) {
+    public Tutor buscar(Long id) {
         return tutores.findById(id).orElseThrow(() -> new NaoEncontradoException("Tutor não encontrado."));
     }
 }

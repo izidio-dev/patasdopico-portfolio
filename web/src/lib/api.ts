@@ -3,9 +3,11 @@
  * (ProblemDetail) em ErroApi com a mensagem e os erros por campo.
  */
 export const API = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
+/** Versão de prévia: a API é simulada no próprio navegador (src/lib/apiPrevia.ts). */
+export const PREVIA = API === "previa";
 const CHAVE = "patas-sessao";
 
-export type Sessao = { token: string; nome: string; demo: boolean };
+export type Sessao = { token: string; nome: string; demo: boolean; papel: import("./tipos").Papel };
 
 export class ErroApi extends Error {
   status: number;
@@ -40,6 +42,18 @@ export const quandoExpirar = (f: () => void) => (aoExpirar = f);
 
 export async function api<T>(caminho: string, opcoes: { metodo?: string; corpo?: unknown } = {}): Promise<T> {
   const sessao = lerSessao();
+  if (PREVIA) {
+    const { tratarPrevia } = await import("./apiPrevia");
+    const r = tratarPrevia(caminho, opcoes.metodo ?? "GET", opcoes.corpo, sessao?.papel);
+    // Copia na hora do pedido (como um servidor, que responde com os dados daquele instante).
+    const dados = r.dados === undefined ? undefined : structuredClone(r.dados);
+    await new Promise((ok) => setTimeout(ok, 120));
+    if (r.status >= 400) {
+      const d = dados as { detail: string; campos?: Record<string, string> };
+      throw new ErroApi(r.status, d.detail, d.campos ?? {});
+    }
+    return dados as T;
+  }
   let resposta: Response;
   try {
     resposta = await fetch(API + caminho, {

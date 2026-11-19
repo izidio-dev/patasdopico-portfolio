@@ -1,16 +1,17 @@
 import { PawPrint } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import { API } from "../lib/api";
+import { API, PREVIA } from "../lib/api";
 
 /**
  * O servidor gratuito (Render) "dorme" depois de 15 min sem uso e leva até ~1 min
  * para voltar. Esta tela chama /api/saude até ele responder, sem parecer quebrado.
  */
 export function Acordando({ children }: { children: ReactNode }) {
-  const [pronto, setPronto] = useState(false);
+  const [pronto, setPronto] = useState(PREVIA);
   const [segundos, setSegundos] = useState(0);
 
   useEffect(() => {
+    if (PREVIA) return;
     let ativo = true;
     const inicio = Date.now();
     const relogio = setInterval(() => setSegundos(Math.floor((Date.now() - inicio) / 1000)), 1000);

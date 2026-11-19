@@ -25,7 +25,7 @@ class AuthTest extends TesteIntegracao {
     @BeforeEach
     void criarUsuario() {
         if (usuarios.findByLogin("rafael").isEmpty()) {
-            usuarios.save(new Usuario("Rafael", "rafael", senhas.encode("senha-forte-123")));
+            usuarios.save(new Usuario("Rafael", "rafael", senhas.encode("senha-forte-123"), Usuario.Papel.DONO));
         }
     }
 
@@ -59,7 +59,7 @@ class AuthTest extends TesteIntegracao {
 
     @Test
     void demoEntraSemSenha() throws Exception {
-        String resposta = mvc.perform(post("/api/auth/demo"))
+        String resposta = mvc.perform(post("/api/auth/demo").param("papel", "FUNCIONARIO"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         String token = JsonPath.read(resposta, "$.token");

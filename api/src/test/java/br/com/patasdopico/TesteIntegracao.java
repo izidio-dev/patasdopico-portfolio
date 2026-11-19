@@ -40,9 +40,14 @@ public abstract class TesteIntegracao {
     @Autowired
     protected MockMvc mvc;
 
-    /** Cabeçalho "Bearer ..." do usuário de demonstração. */
+    /** Cabeçalho "Bearer ..." do dono de demonstração (acesso total). */
     protected String token() throws Exception {
-        String r = mvc.perform(post("/api/auth/demo")).andReturn().getResponse().getContentAsString();
+        return tokenDe("DONO");
+    }
+
+    /** Cabeçalho "Bearer ..." da demonstração de um papel: DONO, FUNCIONARIO ou CLIENTE. */
+    protected String tokenDe(String papel) throws Exception {
+        String r = mvc.perform(post("/api/auth/demo").param("papel", papel)).andReturn().getResponse().getContentAsString();
         return "Bearer " + JsonPath.read(r, "$.token");
     }
 

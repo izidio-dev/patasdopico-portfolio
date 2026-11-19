@@ -31,6 +31,7 @@ public class TokenService {
                 .expiresAt(agora.plus(validade))
                 .claim("nome", u.getNome())
                 .claim("demo", demo)
+                .claim("papel", u.getPapel().name())
                 .build();
         JwsHeader cabecalho = JwsHeader.with(MacAlgorithm.HS256).build();
         return encoder.encode(JwtEncoderParameters.from(cabecalho, claims)).getTokenValue();

@@ -26,6 +26,19 @@ class DemoSeedTest extends TesteIntegracao {
     }
 
     @Test
+    void demoTemFinanceiroDeSeisMesesEClienteComPetsEPedido() throws Exception {
+        mvc.perform(get("/api/financeiro/resumo").header("Authorization", token()))
+                .andExpect(jsonPath("$.saidasCentavos", greaterThanOrEqualTo(1)))
+                .andExpect(jsonPath("$.ultimosMeses[0].entradasCentavos", greaterThanOrEqualTo(1)))
+                .andExpect(jsonPath("$.ultimosMeses[0].saidasCentavos", greaterThanOrEqualTo(1)));
+        mvc.perform(get("/api/cliente/perfil").header("Authorization", tokenDe("CLIENTE")))
+                .andExpect(jsonPath("$.nome").value("Ana Beatriz Carvalho"))
+                .andExpect(jsonPath("$.pets.length()", greaterThanOrEqualTo(1)));
+        mvc.perform(get("/api/cliente/agendamentos").header("Authorization", tokenDe("CLIENTE")))
+                .andExpect(jsonPath("$[*].status", org.hamcrest.Matchers.hasItem("SOLICITADO")));
+    }
+
+    @Test
     void swaggerEstaPublico() throws Exception {
         mvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())

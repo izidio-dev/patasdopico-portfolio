@@ -5,7 +5,8 @@ import { api, ErroApi } from "../lib/api";
 import { nomeEspecie, nomePorte } from "../lib/formato";
 import type { Especie, Pet, Porte } from "../lib/tipos";
 
-export function FormPet({ tutorId, pet, aoFechar, aoSalvar }: { tutorId: number; pet?: Pet; aoFechar: () => void; aoSalvar: (p: Pet) => void }) {
+/** "cliente" = o próprio cliente cadastrando (rotas /api/cliente/pets). */
+export function FormPet({ tutorId, pet, aoFechar, aoSalvar, cliente = false }: { tutorId: number; pet?: Pet; aoFechar: () => void; aoSalvar: (p: Pet) => void; cliente?: boolean }) {
   const [nome, setNome] = useState(pet?.nome ?? "");
   const [especie, setEspecie] = useState<Especie | "">(pet?.especie ?? "");
   const [raca, setRaca] = useState(pet?.raca ?? "");
@@ -21,7 +22,8 @@ export function FormPet({ tutorId, pet, aoFechar, aoSalvar }: { tutorId: number;
     setErro("");
     const corpo = { nome, especie: especie || null, raca, porte: porte || null, nascimento: nascimento || null, observacoes };
     try {
-      aoSalvar(pet ? await api<Pet>(`/api/pets/${pet.id}`, { metodo: "PUT", corpo }) : await api<Pet>(`/api/tutores/${tutorId}/pets`, { metodo: "POST", corpo }));
+      const url = cliente ? (pet ? `/api/cliente/pets/${pet.id}` : "/api/cliente/pets") : pet ? `/api/pets/${pet.id}` : `/api/tutores/${tutorId}/pets`;
+      aoSalvar(await api<Pet>(url, { metodo: pet ? "PUT" : "POST", corpo }));
     } catch (e) {
       if (e instanceof ErroApi && Object.keys(e.campos).length) setErros(e.campos);
       else setErro(e instanceof Error ? e.message : "Não foi possível salvar.");

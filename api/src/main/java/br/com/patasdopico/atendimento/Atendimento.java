@@ -22,7 +22,8 @@ public class Atendimento {
 
     public enum Servico { BANHO, TOSA, BANHO_E_TOSA, VACINA, CONSULTA }
 
-    public enum Status { AGENDADO, CONCLUIDO, CANCELADO }
+    /** SOLICITADO = pedido feito pelo cliente, aguardando a equipe confirmar. */
+    public enum Status { SOLICITADO, AGENDADO, CONCLUIDO, CANCELADO }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,19 +51,31 @@ public class Atendimento {
     }
 
     public void atualizar(Servico servico, LocalDateTime dataHora, long valorCentavos, String observacoes) {
-        if (status != Status.AGENDADO) throw new ConflitoException("Só é possível editar atendimentos agendados.");
+        if (status != Status.AGENDADO && status != Status.SOLICITADO)
+            throw new ConflitoException("Só é possível editar atendimentos agendados.");
         this.servico = servico;
         this.dataHora = dataHora;
         this.valorCentavos = valorCentavos;
         this.observacoes = observacoes;
     }
 
-    /** Agendado pode virar concluído ou cancelado; depois disso o status fica fixo. */
+    /** Marca como pedido do cliente (a equipe ainda precisa confirmar). */
+    public void solicitar() {
+        this.status = Status.SOLICITADO;
+    }
+
+    /**
+     * Regras de status:
+     * solicitado → agendado (equipe confirma) ou cancelado;
+     * agendado → concluído ou cancelado; concluído e cancelado são finais.
+     */
     public void mudarStatus(Status novo) {
         if (novo == status) return;
         if (status == Status.CONCLUIDO) throw new ConflitoException("Atendimento concluído não pode mudar de status.");
         if (status == Status.CANCELADO) throw new ConflitoException("Atendimento cancelado não pode mudar de status.");
-        if (novo == Status.AGENDADO) throw new ConflitoException("O atendimento já está agendado.");
+        if (novo == Status.SOLICITADO) throw new ConflitoException("Um atendimento não volta a ser pedido.");
+        if (status == Status.SOLICITADO && novo == Status.CONCLUIDO) throw new ConflitoException("Confirme o pedido antes de concluir.");
+        if (status == Status.AGENDADO && novo == Status.AGENDADO) throw new ConflitoException("O atendimento já está agendado.");
         this.status = novo;
     }
 

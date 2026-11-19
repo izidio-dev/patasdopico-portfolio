@@ -11,8 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Na inicialização, garante:
- * - o usuário "demo" (senha aleatória: só entra pelo botão de demonstração);
- * - o administrador definido por ADMIN_LOGIN/ADMIN_SENHA, se essas variáveis existirem.
+ * - os usuários de demonstração do dono e do funcionário (senha aleatória: só entram pelo botão);
+ * - o dono definido por ADMIN_LOGIN/ADMIN_SENHA, se essas variáveis existirem.
  */
 @Component
 @Order(1)
@@ -34,13 +34,18 @@ public class UsuariosIniciais implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        if (usuarios.findByLogin(AuthController.LOGIN_DEMO).isEmpty()) {
-            usuarios.save(new Usuario("Equipe (demonstração)", AuthController.LOGIN_DEMO, senhas.encode(UUID.randomUUID().toString())));
-        }
+        garantirDemo(AuthController.LOGIN_DEMO_FUNCIONARIO, "Funcionário (demonstração)", Usuario.Papel.FUNCIONARIO);
+        garantirDemo(AuthController.LOGIN_DEMO_DONO, "Dono (demonstração)", Usuario.Papel.DONO);
         if (!adminLogin.isBlank() && adminSenha.length() >= 10) {
             usuarios.findByLogin(adminLogin).ifPresentOrElse(
                     u -> u.trocarSenha(senhas.encode(adminSenha)),
-                    () -> usuarios.save(new Usuario("Administrador", adminLogin, senhas.encode(adminSenha))));
+                    () -> usuarios.save(new Usuario("Administrador", adminLogin, senhas.encode(adminSenha), Usuario.Papel.DONO)));
         }
+    }
+
+    private void garantirDemo(String login, String nome, Usuario.Papel papel) {
+        usuarios.findByLogin(login).ifPresentOrElse(
+                u -> u.renomear(nome),
+                () -> usuarios.save(new Usuario(nome, login, senhas.encode(UUID.randomUUID().toString()), papel)));
     }
 }

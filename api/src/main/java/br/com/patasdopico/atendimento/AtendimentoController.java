@@ -4,6 +4,8 @@ import br.com.patasdopico.atendimento.AtendimentoDtos.AtendimentoPedido;
 import br.com.patasdopico.atendimento.AtendimentoDtos.AtendimentoResposta;
 import br.com.patasdopico.atendimento.AtendimentoDtos.MudancaStatus;
 import br.com.patasdopico.comum.NaoEncontradoException;
+import br.com.patasdopico.financeiro.Lancamento;
+import br.com.patasdopico.financeiro.LancamentoRepository;
 import br.com.patasdopico.pet.PetRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -31,10 +33,12 @@ public class AtendimentoController {
 
     private final AtendimentoRepository atendimentos;
     private final PetRepository pets;
+    private final LancamentoRepository lancamentos;
 
-    public AtendimentoController(AtendimentoRepository atendimentos, PetRepository pets) {
+    public AtendimentoController(AtendimentoRepository atendimentos, PetRepository pets, LancamentoRepository lancamentos) {
         this.atendimentos = atendimentos;
         this.pets = pets;
+        this.lancamentos = lancamentos;
     }
 
     private static String limpar(String s) {
@@ -82,6 +86,11 @@ public class AtendimentoController {
     public AtendimentoResposta mudarStatus(@PathVariable Long id, @Valid @RequestBody MudancaStatus m) {
         Atendimento a = buscar(id);
         a.mudarStatus(m.status());
+        // Atendimento concluído vira entrada no financeiro (uma vez só, sem dados pessoais).
+        if (a.getStatus() == Atendimento.Status.CONCLUIDO && a.getValorCentavos() > 0 && !lancamentos.existsByAtendimentoId(a.getId())) {
+            lancamentos.save(new Lancamento(Lancamento.Tipo.ENTRADA, "Serviços", a.getServico().name(), a.getValorCentavos(),
+                    a.getDataHora().toLocalDate(), a.getId()));
+        }
         return AtendimentoResposta.de(a);
     }
 
