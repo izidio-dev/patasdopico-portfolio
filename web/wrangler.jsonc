@@ -1,0 +1,10 @@
+{
+  // Publica as telas (pasta dist/ gerada pelo "npm run build") no Cloudflare Workers.
+  "name": "patasdopico-portfolio",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    // Aplicativo de uma página: qualquer endereço abre o index.html (o React decide a tela).
+    "not_found_handling": "single-page-application"
+  }
+}
